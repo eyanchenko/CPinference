@@ -1,7 +1,4 @@
 ## CP identification simulations
-setwd("~/Documents/Research/Srijan/CP_clean/Code")
-
-
 library(dplyr)
 library(ggplot2)
 library(Rcpp)
@@ -14,11 +11,8 @@ library(RColorBrewer)
 #py_install("cpnet")
 
 source("sims_functions.R")
-source_python('cp_lip.py')
 source_python('cp_rombach.py')
-source_python('cp_surprise.py')
 source_python('cp_cur.py')
-source_python('cp_be.py')
 
 ################## Simulations
 

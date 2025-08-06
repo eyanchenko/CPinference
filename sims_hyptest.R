@@ -1,10 +1,4 @@
 ## Simulations for CP hypothesis testing paper
-## Eric Yanchenko
-## October 20, 2022
-
-
-setwd("~/Documents/Research/Srijan/CP_clean/Code")
-
 
 library(dplyr)
 library(ggplot2)

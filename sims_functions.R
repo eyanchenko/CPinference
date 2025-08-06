@@ -111,37 +111,6 @@ cppFunction('IntegerVector borgattiCpp(IntegerMatrix A){
   return( C );
 }')
 
-
-### Plot adjacency matrices
-plot_matrix = function(in_mat){
-  require(ggplot2)
-  
-  x = seq(1, nrow(in_mat))
-  y = seq(1, ncol(in_mat))
-  
-  df = expand.grid(X=x, Y=y)
-  df$Z = c(in_mat)
-  
-  # doesn't seem to care about those colors at all, but it works
-  ggplot(df, aes(X, Y, fill= Z)) + 
-    geom_tile()+
-    scale_fill_continuous(type = "viridis",
-                          limits = c(0,1), 
-                          breaks = c(0, 1/4, 2/4, 3/4, 4/4),
-                          guide_colourbar(nbin = 100),
-                          name = "theta")+
-    theme_minimal()+
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank())+
-    theme(legend.position = "none")
-  
-  
-}
-
 #' @title Borgatti and Everett core-periphery metric
 #' @description This function evaluates the BE CP metric
 #' @param A adjacency matrix
@@ -381,65 +350,6 @@ anal_rejc <- function(A, C, null=c("ER", "CL")){
   return(list(T1=T1, C1=C1, T2=T2, C2=C2, reject= as.numeric(T1 > C1 ) * as.numeric(T2 > C2 )) )
   
 }
-
-
-# Re-wire preserving total number of edges
-boot_boyd <- function(A, tstat, iters=200, mc_cores=4){
-  G <- as.undirected(graph.adjacency(A, mode="undirected")) # convert adjacency matrix to graph
-  
-  boyd.apply <- function(i){
-    Gi <- rewire(G, each_edge(p=0.5, loops=FALSE))
-    Ai <- as.matrix(as_adjacency_matrix(Gi))
-    Ai <- Ai[colSums(Ai) >0, colSums(Ai) >0]
-    
-    Ci <- borgattiCpp(Ai)
-    stati <- obj.fun(Ai, Ci)
-    
-    return(stati)
-  }
-  
-  out <- unlist(mclapply(1:iters, boyd.apply, mc.cores=mc_cores))
-  return(as.numeric(mean(out >= tstat)))
-  
-}
-# Re-wire preserving degree sequence (Holme-like null model)
-boot_deg <- function(A, tstat, iters=200, mc_cores=4){
-  G <- as.undirected(graph.adjacency(A, mode="undirected")) # convert adjacency matrix to graph
-  
-  deg.apply <- function(i){
-    Gi <- rewire(G, keeping_degseq())
-    Ai <- as.matrix(as_adjacency_matrix(Gi))
-    Ai <- Ai[colSums(Ai) >0, colSums(Ai) >0]
-    
-    Ci <- borgattiCpp(Ai)
-    stati <- obj.fun(Ai, Ci)
-    
-    return(stati)
-  }
-  
-  out <- unlist(mclapply(1:iters, deg.apply, mc.cores=mc_cores))
-  return(as.numeric(mean(out >= tstat)))
-  
-}
-boot_ER <- function(A, tstat, iters=200, mc_cores=4){
-  
-  n = dim(A)[1]
-  p.hat <- sum(A)/(n*(n-1))
-  
-  er.apply <- function(i){
-    Ai <- generateER(n, p.hat)
-    Ai <- Ai[colSums(Ai) >0, colSums(Ai) >0]
-    
-    Ci <- borgattiCpp(Ai)
-    stati <- obj.fun(Ai, Ci)
-    
-    return(stati)
-  }
-  
-  out <- unlist(mclapply(1:iters, er.apply, mc.cores=mc_cores))
-  return(as.numeric(mean(out >= tstat)))
-}
-
 
 # From R Programs for Computing Truncated Distributions
 qtrunc <- function(p, spec, a = -Inf, b = Inf, ...) {
@@ -723,10 +633,6 @@ C_rombach <- function(A, k){
 
 C_cur <- function(A){
   unlist(cp_cur(A))
-}
-
-C_be <- function(A){
-  unlist(cp_be(A))
 }
 
 C_SBM <- function(A, iters, burn){
